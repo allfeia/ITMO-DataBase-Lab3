@@ -1,16 +1,24 @@
-CREATE OR REPLACE FUNCTION new_observation()
-RETURNS TRIGGER AS $new_observation$
+CREATE OR REPLACE FUNCTION compare_planet_color()
+RETURNS TRIGGER AS $$
 BEGIN
-INSERT INTO Observation (time, view_id, planet_color)
-SELECT NOW(), View.id, Planet.name
-FROM View
-JOIN Place ON Place.id = View.place_id
-JOIN Planet ON Place.description = NEW.description
-WHERE View.field_of_view = NEW.field_of_view;
-RETURN NEW;
-END;
-$new_observation$ LANGUAGE plpgsql;
+    DECLARE
+        old_color TEXT;
+        new_color TEXT;
+    BEGIN
+        old_color := (SELECT planet_color FROM Observation WHERE id = OLD.id);
+        new_color := (SELECT planet_color FROM Observation WHERE id = NEW.id);
 
-CREATE OR REPLACE TRIGGER after_action
-AFTER INSERT ON action
-FOR EACH ROW EXECUTE FUNCTION new_observation();
+        IF old_color <> new_color THEN
+            INSERT INTO Action (description, observation_id)
+            VALUES ('Цвет планеты изменился', NEW.id);
+        END IF;
+        
+        RETURN NEW;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER compare_color_trigger
+AFTER UPDATE OF planet_color ON Observation
+FOR EACH ROW
+EXECUTE FUNCTION compare_planet_color();
