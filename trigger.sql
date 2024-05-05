@@ -6,7 +6,7 @@ BEGIN
 
     BEGIN
         FOR exist_color IN
-            SELECT planet_color FROM Observation WHERE id < NEW.id
+            SELECT planet_color FROM Observation WHERE id == NEW.id - 1
         LOOP
             IF exist_color <> NEW.planet_color THEN
                 INSERT INTO Action (description, observation_id)
