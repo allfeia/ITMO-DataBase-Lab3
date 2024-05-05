@@ -5,15 +5,14 @@ BEGIN
         exist_color TEXT;
 
     BEGIN
-        FOR exist_color IN
-            SELECT planet_color FROM Observation WHERE id == NEW.id - 1
-        LOOP
-            IF exist_color <> NEW.planet_color THEN
-                INSERT INTO Action (description, observation_id)
-                VALUES ('Цвет планеты изменился', NEW.id);
-                EXIT;
-            END IF;
-        END LOOP;
+        SELECT planet_color INTO exist_color
+        FROM Observation
+        WHERE id = NEW.id - 1;
+
+        IF exist_color <> NEW.planet_color THEN
+            INSERT INTO Action (description, observation_id)
+            VALUES ('Цвет планеты изменился', NEW.id);
+        END IF;
 
         RETURN NEW;
     END;
