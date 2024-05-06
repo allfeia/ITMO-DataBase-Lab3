@@ -7,7 +7,8 @@ BEGIN
     BEGIN
         SELECT planet_color INTO exist_color
         FROM Observation
-        WHERE id = NEW.id - 1;
+        WHERE time < NEW.time
+        ORDER BY time DESC;
 
         IF exist_color <> NEW.planet_color THEN
             INSERT INTO Action (description, observation_id)
